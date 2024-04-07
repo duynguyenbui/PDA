@@ -8,7 +8,9 @@ List<string> alphabet = [..numbers, "+", "*", "(", ")"];
 var pda = new PDA(alphabet);
 const string input = "(2+5)*10";
 Console.WriteLine(pda.Run(input) ? "Accepted" : "Rejected");
+Console.WriteLine($"Result: {input} -> {input.EvaluateExpression(input)}");
 
+/* Class Push Down Automata for the given CFG */
 public class PDA
 {
     private string state;
