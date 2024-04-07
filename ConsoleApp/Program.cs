@@ -2,7 +2,9 @@
 /*
  * Number can be replaced by int for general, but for programing convenience I prefer using real number for testing
  */
-List<string> alphabet = ["2", "5", "10", "+", "*", "(", ")"];
+
+var numbers = Enumerable.Range(1, 10).Select(i => i.ToString()).ToList();
+List<string> alphabet = [..numbers, "+", "*", "(", ")"];
 var pda = new PDA(alphabet);
 const string input = "(2+5)*10";
 Console.WriteLine(pda.Run(input) ? "Accepted" : "Rejected");
@@ -26,42 +28,18 @@ public class PDA
         if (!alphabet.Contains(input)) return;
         switch (state)
         {
-            case "q0":
-                switch (input)
-                {
-                    case "(":
-                        stack.Push("(");
-                        state = "q0";
-                        break;
-                    case "2":
-                    case "5":
-                    case "10":
-                        // Do nothing but change state to "q1"
-                        state = "q1";
-                        break;
-                }
+            case "q0" when input == "(":
+                stack.Push("(");
                 break;
-            case "q1":
-                switch (input)
-                {
-                    case ")":
-                        {
-                            var result = stack.Pop();
-                            if (result != "(")
-                            {
-                                state = "q1"; // Go back to q1 if ')' is found but no '(' is there
-                            }
-                            else
-                            {
-                                state = "q2";
-                            }
-
-                            break;
-                        }
-                    case "+" or "*":
-                        state = "q0";
-                        break;
-                }
+            case "q0" when int.TryParse(input, out _):
+                state = "q1";
+                break;
+            case "q1" when input == ")":
+                if (stack.Pop() == "(") state = "q2";
+                else stack.Push("("); // Push back if ')' is found but no '(' is there
+                break;
+            case "q1" when input is "+" or "*":
+                state = "q0";
                 break;
         }
     }
@@ -72,6 +50,7 @@ public class PDA
         {
             Transition(symbol.ToString());
         }
+
         return stack.Pop() == "Z" && state == "q2";
     }
 }
