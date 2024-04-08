@@ -1,14 +1,19 @@
 ﻿// See https://aka.ms/new-console-template for more information
 /*
  * Number can be replaced by int for general, but for programing convenience I prefer using real number for testing
+ * Author: Duy Nguyen BUI responsible for coding, developing and testing this algorithm
  */
 
+using System.Globalization;
+using System.Text.RegularExpressions;
+
 var numbers = Enumerable.Range(1, 10).Select(i => i.ToString()).ToList();
-List<string> alphabet = [..numbers, "+", "*", "(", ")"];
+List<string> alphabet = [..numbers, "+", "*", "(", ")", "N"];
 var pda = new PDA(alphabet);
-const string input = "(2+5)*10";
+const string input = "(2+(8))*10";
 Console.WriteLine(pda.Run(input) ? "Accepted" : "Rejected");
-Console.WriteLine($"Result: {input} -> {input.EvaluateExpression(input)}");
+Console.WriteLine(
+    $"Result: {input} -> {(input.EvaluateExpression(input) == 0 ? "Invalid expression" : input.EvaluateExpression(input).ToString(CultureInfo.CurrentCulture))}");
 
 /* Class Push Down Automata for the given CFG */
 public class PDA
@@ -27,7 +32,7 @@ public class PDA
 
     private void Transition(string input)
     {
-        if (!alphabet.Contains(input)) return;
+        if (!alphabet.Contains(input)) throw new Exception("Missing alphabet for this input");
         switch (state)
         {
             case "q0" when input == "(":
@@ -37,8 +42,10 @@ public class PDA
                 state = "q1";
                 break;
             case "q1" when input == ")":
-                if (stack.Pop() == "(") state = "q2";
-                else stack.Push("("); // Push back if ')' is found but no '(' is there
+                if (stack.Pop() == "(") state = "q1";
+                break;
+            case "q1" when input == "N":
+                state = "q2";
                 break;
             case "q1" when input is "+" or "*":
                 state = "q0";
@@ -48,11 +55,23 @@ public class PDA
 
     public bool Run(string input)
     {
-        foreach (var symbol in input)
+        try
         {
-            Transition(symbol.ToString());
-        }
+            input += "N";
+            const string pattern = @"(\d+|\D)";
 
-        return stack.Pop() == "Z" && state == "q2";
+            var matches = Regex.Matches(input, pattern);
+
+            foreach (var match in matches.ToList())
+            {
+                Transition(match.Value);
+            }
+
+            return stack.Pop() == "Z" && state == "q2";
+        }
+        catch (Exception e)
+        {
+            return false;
+        }
     }
 }
