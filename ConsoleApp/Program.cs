@@ -10,10 +10,11 @@ using System.Text.RegularExpressions;
 var numbers = Enumerable.Range(1, 10).Select(i => i.ToString()).ToList();
 List<string> alphabet = [..numbers, "+", "*", "(", ")", "N"];
 var pda = new PDA(alphabet);
-const string input = "(2+(8))*10";
-Console.WriteLine(pda.Run(input) ? "Accepted" : "Rejected");
+const string input = "(2+5)*10";
+var result = pda.Run(input);
+Console.WriteLine(result ? "Accepted" : "Rejected");
 Console.WriteLine(
-    $"Result: {input} -> {(input.EvaluateExpression(input) == 0 ? "Invalid expression" : input.EvaluateExpression(input).ToString(CultureInfo.CurrentCulture))}");
+    $"Result: {input} -> {(!result ? "Invalid expression" : input.EvaluateExpression(input).ToString(CultureInfo.CurrentCulture))}");
 
 /* Class Push Down Automata for the given CFG */
 public class PDA
@@ -57,19 +58,12 @@ public class PDA
     {
         try
         {
-            input += "N";
             const string pattern = @"(\d+|\D)";
-
-            var matches = Regex.Matches(input, pattern);
-
-            foreach (var match in matches.ToList())
-            {
-                Transition(match.Value);
-            }
-
+            var matches = Regex.Matches(input + "N", pattern);
+            foreach (var match in matches.ToList()) Transition(match.Value);
             return stack.Pop() == "Z" && state == "q2";
         }
-        catch (Exception e)
+        catch (Exception)
         {
             return false;
         }
